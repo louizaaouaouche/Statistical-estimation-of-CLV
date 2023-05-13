@@ -172,7 +172,7 @@ def CI_multiplot(clv, lower , upper):
     
     
     # print confidence level
-    print(f"Theoritical_CI = [{np.mean(lower)}, {np.mean(upper)} ]. {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of new estimators are within this interval, CONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}%")
+    print(f"Theoritical_CI = [{np.mean(lower)}, {np.mean(upper)} ]. \n CONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of new estimators are within this interval")
 
 def CI_plot_95( values, alpha):
     # Calculate percentiles
