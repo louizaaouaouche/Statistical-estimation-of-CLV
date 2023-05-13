@@ -9,6 +9,13 @@ import random
 
 #The package contains a group of functions that are useful to generate data, compute confidence intervals or boostrapping.
 
+
+#GLOBAL CONSTANTS
+clv_theory = 10 
+size= 10000 # size of each sample
+n = 10000 # number of samples
+DureeObs = 12*2 # duration of observation
+
 #======================
 # GENERATORS
 #======================
@@ -97,7 +104,7 @@ def CI_plot(clv_values, lower, upper):
     # Show the plot
     plt.show()
     
-def CI_monoplot(clv_values, lower, upper):
+def CI_monoplot(clv_values, lower, upper, lower_b, upper_b):
     """
     Plots confidence intervals 
     
@@ -105,19 +112,24 @@ def CI_monoplot(clv_values, lower, upper):
         clv_values : clv values related to the confidence intervals
         lower : The lower limit of the confidence interval.
         upper : The upper limit of the confidence interval.
+        lower_b : The lower limit of the bootstrap confidence interval.
+        upper_b : The upper limit of the bootstrap confidence interval.
     """
     
     # Define x-axis values
-    x = range(len(clv_values))
+    n = len(clv_values)
+    x = range(n)
 
     # Set figure size
     fig, ax = plt.subplots(figsize=(20, 6))
 
     # Plot the data
-    ax.plot(x, clv_values, label='Computed Value', color='blue')
-    #ax.plot(x, lower, color='red', label='lower')
-    #ax.plot(x, upper, color='green', label='upper')
-    ax.fill_between(x, lower, upper, alpha=0.2, label='CI', color='gray')
+    ax.plot(x, clv_values, label='CLV values', color='blue')
+    ax.plot(x, lower, color='green', label='CI Monte Carlo')
+    ax.plot(x, upper, color='green')
+    ax.plot(x, lower_b, color='red', label='CI bootstrap')
+    ax.plot(x, upper_b, color='red')
+    #ax.fill_between(x, lower, upper, alpha=0.2, label='CI', color='gray')
 
     # Add labels and legend
     ax.set_xlabel('Sample')
@@ -161,7 +173,24 @@ def CI_multiplot(clv, lower , upper):
     
     # print confidence level
     print(f"Theoritical_CI = [{np.mean(lower)}, {np.mean(upper)} ]. {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of new estimators are within this interval, CONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}%")
+
+def CI_plot_95( values, alpha):
+    # Calculate percentiles
+    lower = np.percentile(values, 100 * alpha / 2)
+    upper = np.percentile(values, 100 * (1 - alpha / 2))
+
+    # Plot the histogram with KDE and add vertical lines
+    sns.histplot(values, kde=True)
+    plt.axvline(lower, color='red', label='95% CI')
+    plt.axvline(upper, color='red')
+    plt.title("Distribution of CLV")
+    plt.legend()
+    plt.show()
+
+    print("IC = [%.2f , %.2f ] " % (lower, upper))
     
+    return lower, upper
+
     
 def plot_bar_std(value1, value2, title):
     # Plot for the two first values
@@ -243,6 +272,50 @@ def bootstrap_confidence_interval(data, censored, func, alpha=0.05, B=100):
     upper_bound = np.percentile(bootstrap_statistics, upper_percentile)  # Calculate the upper bound of the confidence interval
 
     return lower_bound, upper_bound  # Return the lower and upper bounds of the confidence interval
+
+def bootstrap_samples(data, censored, func, B=10000):
+    """
+    returns a list of func values of B samples of the data
+    
+    Args:
+        data : data points (lifetime of customers) for one sample
+        censored ({0,1}) : 0 if data is not censored, 1 if it is 
+        func : function calculating the CLV value according to data distribution
+        alpha (0<= float <=1): significance level
+        B : number of boostrap samples
+    
+    Returns:
+    list of samples, list of related func values
+    """
+    bootstrap_statistics = []  # Initialize an empty list to store bootstrap statistics
+    if censored :
+        Y_samples = []
+        A_samples = []
+        n = len(data[0])
+    else :
+        samples = []
+        n = len(data)
+    # Generate B bootstrap samples and compute the statistic of interest for each sample
+    for b in range(B):
+        random_indices = np.random.choice(range(n), size=n, replace=True)
+        if censored:
+            Y_bootstrap_sample = data[0][random_indices]  # Randomly sample n values with replacement
+            Y_samples.append(Y_bootstrap_sample)
+            A_bootstrap_sample = data[1][random_indices]
+            A_samples.append(A_bootstrap_sample)
+            bootstrap_statistic = func(Y_bootstrap_sample,A_bootstrap_sample)  
+        else :
+            bootstrap_sample = data[random_indices]  # Randomly sample n values with replacement
+            samples.append(bootstrap_sample)
+            bootstrap_statistic = func(bootstrap_sample)  # Compute the mean (replace with your desired statistic)
+        bootstrap_statistics.append(bootstrap_statistic)  # Store the computed statistic for the bootstrap sample
+    if censored:
+        return Y_samples, A_samples, bootstrap_statistics
+    
+    else :
+        return samples, bootstrap_statistics
+
+
 
 
 def bootstrap_intervals(list_data, censored, func,  alpha=0.05, B=100):
