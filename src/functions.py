@@ -21,7 +21,7 @@ DureeObs = 12*2 # duration of observation
 #======================
 
 # EXPONENTIAL GENERATOR - without censored data 
-def generate_exponential_perfect(mean, size):
+def generate_nc_exponential(mean, size):
     """
     Generates random numbers following an exponential distribution
 
@@ -53,6 +53,21 @@ def generate_exponential(mean, size , obs_duration):
     Y = T*(T<=ancient) +  ancient*(T>ancient)
     return Y , ancient
 
+# PARETO GENERATOR
+def generate_nc_pareto(clv_th, size):
+    shape = 3
+
+    T = pareto.rvs(shape, scale = 1, size=size) 
+
+    return T
+
+def generate_c_pareto(clv_th, size, obs_duration):
+    shape = 3
+    #T = (np.random.pareto(a=shape, size=size) + 1 ) * scale  # pareto 2 
+    T = pareto.rvs(shape, scale = 1, size=size) 
+    ancient = obs_duration* np.random.rand(size) +1   # uniform distribution
+    Y = T * (T <= ancient) + ancient * (T > ancient)
+    return Y, ancient
 #======================
 # Confidence Intervals
 #======================
@@ -172,7 +187,7 @@ def CI_multiplot(clv, lower , upper):
     
     
     # print confidence level
-    print(f"Theoritical_CI = [{np.mean(lower)}, {np.mean(upper)} ]. \n CONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of new estimators are within this interval")
+    print(f"Theoritical_CI = [{np.mean(lower)}, {np.mean(upper)} ]. \n CONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of estimators are within this interval")
 
 def CI_plot_95( values, alpha):
     # Calculate percentiles
@@ -406,6 +421,28 @@ def monte_carlo(clv_thoery, size, n, censored, clv_func, generator_fun ):
     
     return clv, Y_n
 
+def clv_convergence(clv_values, clv_theory,n, title ):
+    """
+    Visualise the law of large numbers 
+    """
+    # calculate the mean of the CLV estimates for each iteration
+    mean_estimates = [np.mean(clv_values[:i]) for i in range(1, n+1)]
+
+    # plot the mean estimates over the number of iterations
+    plt.plot(range(1, n+1), mean_estimates)
+
+    # plot a horizontal line at the theoretical CLV value
+    plt.axhline(y=clv_theory, color='r', linestyle='-', label='Theoretical CLV')
+
+    # add labels and a title to the plot
+    plt.xlabel('Number of Monte Carlo samples')
+    plt.ylabel('Mean CLV Estimate')
+    plt.title(title)
+
+    # show the plot
+    plt.legend()
+    plt.show()
+
 #Geomtric estimator - not censored
 
 def geom_clv_estimator(T):
@@ -463,3 +500,22 @@ def CI_exp_c_clv(a,Y,ancient):
     upper = np.sum(Y)/(len_A + - a * np.sqrt(len_A))
     
     return lower, upper
+
+# pareto estimator
+def pareto_nc_clv_estimator(Y):
+    n = len(Y)
+    denom = 1 - (1/n)*(np.sum(np.log(Y)))
+    return 1 / denom
+
+def pareto_c_clv_estimator(Y, ancient):
+    n = len(Y) - len(np.where(Y==ancient)[0])
+    denom = 1 - (1/n)*(np.sum(np.log(Y)))
+    return 1 / denom
+
+def CI_pareto_c_clv(a,Y,ancient):
+
+    len_A = len(np.where(Y!=ancient)[0])
+    lower = 1- (np.sum(np.log(Y)) / (len_A - 1.96* np.sqrt(len_A)))
+    upper = 1- (np.sum(np.log(Y)) / (len_A + 1.96* np.sqrt(len_A)))
+    
+    return 1/upper, 1/lower
