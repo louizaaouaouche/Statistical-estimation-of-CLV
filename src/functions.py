@@ -173,6 +173,7 @@ def CI_multiplot(clv, lower , upper):
     # plot of the distribution
     sns.histplot(lower, color='blue', kde=True, label='Lower CI')
     sns.histplot(upper, color='orange', kde=True, label='Upper CI')
+    plot(range(n), np.full(size, lower_geom_nc), color='green', label='CI Monte Carlo')
     
     # Add titles and axis labels
     plt.title('Distribution of IC')
