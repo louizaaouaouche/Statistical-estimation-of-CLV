@@ -202,7 +202,7 @@ def CI_plot_95( values, alpha):
     plt.legend()
     plt.show()
 
-    print("IC = [%.2f , %.2f ] " % (lower, upper))
+    print("IC = [%f , %f ] " % (lower, upper))
     
     return lower, upper
 
