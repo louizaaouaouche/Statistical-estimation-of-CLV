@@ -109,6 +109,8 @@ def CI_plot(clv_values, lower, upper):
     #ax.plot(x, lower, color='red', label='lower')
     #ax.plot(x, upper, color='green', label='upper')
     ax.fill_between(x, lower, upper, alpha=0.2, label='CI', color='gray')
+    plt.axhline(y=np.mean(lower), color='green', linestyle='--', label='Mean Lower')
+    plt.axhline(y=np.mean(upper), color='red', linestyle='--', label='Mean Upper')
 
     # Add labels and legend
     ax.set_xlabel('Sample')
@@ -119,7 +121,7 @@ def CI_plot(clv_values, lower, upper):
     # Show the plot
     plt.show()
     
-def CI_monoplot(clv_values, lower, upper, lower_b, upper_b):
+def CI_monoplot(clv_values, lower, upper):
     """
     Plots confidence intervals 
     
@@ -127,8 +129,6 @@ def CI_monoplot(clv_values, lower, upper, lower_b, upper_b):
         clv_values : clv values related to the confidence intervals
         lower : The lower limit of the confidence interval.
         upper : The upper limit of the confidence interval.
-        lower_b : The lower limit of the bootstrap confidence interval.
-        upper_b : The upper limit of the bootstrap confidence interval.
     """
     
     # Define x-axis values
@@ -140,10 +140,8 @@ def CI_monoplot(clv_values, lower, upper, lower_b, upper_b):
 
     # Plot the data
     ax.plot(x, clv_values, label='CLV values', color='blue')
-    ax.plot(x, lower, color='green', label='CI Monte Carlo')
+    ax.plot(x, lower, color='green', label='CI')
     ax.plot(x, upper, color='green')
-    ax.plot(x, lower_b, color='red', label='CI bootstrap')
-    ax.plot(x, upper_b, color='red')
     #ax.fill_between(x, lower, upper, alpha=0.2, label='CI', color='gray')
 
     # Add labels and legend
@@ -155,26 +153,27 @@ def CI_monoplot(clv_values, lower, upper, lower_b, upper_b):
     # Show the plot
     plt.show()
 
-def CI_multiplot(clv, lower , upper):
+def CI_multiplot(clv, lower, upper):
     """
     Plots confidence intervals
     Plots lower, upper distributions
     Prints confidence level
-    
+
     Args:
-        clv_values : clv values related to the confidence intervals
+        clv : clv values related to the confidence intervals
         lower : The lower limit of the confidence interval.
         upper : The upper limit of the confidence interval.
     """
-    
+
     # plot confidence interval
     CI_plot(clv, lower, upper)
 
     # plot of the distribution
     sns.histplot(lower, color='blue', kde=True, label='Lower CI')
     sns.histplot(upper, color='orange', kde=True, label='Upper CI')
-    plot(range(n), np.full(size, lower_geom_nc), color='green', label='CI Monte Carlo')
-    
+    plt.axvline(x=np.mean(lower), color='green', linestyle='--', label='Mean Lower')
+    plt.axvline(x=np.mean(upper), color='red', linestyle='--', label='Mean Upper')
+
     # Add titles and axis labels
     plt.title('Distribution of IC')
     plt.xlabel('Value')
@@ -185,10 +184,10 @@ def CI_multiplot(clv, lower , upper):
 
     # Show the plot
     plt.show()
-    
-    
+
     # print confidence level
-    print(f"Theoritical_CI = [{np.mean(lower)}, {np.mean(upper)} ]. \n CONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of estimators are within this interval")
+    print(f"Theoretical CI = [{np.mean(lower)}, {np.mean(upper)}].\nCONFIDENCE LEVEL: {confidence_lvl(np.mean(lower), np.mean(upper), clv):.2f}% of estimators are within this interval")
+
 
 def CI_plot_95( values, alpha):
     # Calculate percentiles
