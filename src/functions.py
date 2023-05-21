@@ -16,9 +16,9 @@ size= 10000 # size of each sample
 n = 10000 # number of samples
 DureeObs = 12*2 # duration of observation
 
-#======================
-# GENERATORS
-#======================
+######################################################################################
+#                                     GENERATORS                                     #
+######################################################################################
 
 # EXPONENTIAL GENERATOR - without censored data 
 def generate_nc_exponential(mean, size):
@@ -68,9 +68,11 @@ def generate_c_pareto(clv_th, size, obs_duration):
     ancient = obs_duration* np.random.rand(size) +1   # uniform distribution
     Y = T * (T <= ancient) + ancient * (T > ancient)
     return Y, ancient
-#======================
-# Confidence Intervals
-#======================
+
+######################################################################################
+#                             CONFIDENCE INTERVALS                                   #
+######################################################################################
+
 def confidence_lvl(lower_bound, upper_bound, estimators):
     """
     Calculates the percentage of estimates falling within a given confidence interval.
@@ -218,9 +220,9 @@ def plot_bar_std(value1, value2, title):
     plt.show()
     
     
-#======================
-# Bootstrap
-#======================
+######################################################################################
+#                                    BOOTSTRAPPING                                   #
+######################################################################################
 
 def bootstrap(data1, data2): #
     """
@@ -363,9 +365,9 @@ def bootstrap_intervals(list_data, censored, func,  alpha=0.05, B=100):
     return lower_bounds,upper_bounds
 
 
-#===============
-# CLV functions
-#===============
+######################################################################################
+#                                   CLV / ESTIMATOR                                  #
+######################################################################################
 def print_conv_plot_distribution(size, n ,clv_theory, clv_real):
     """
     Plots the distribution of the errors of estimation between clv_thoery and clv_real
@@ -503,13 +505,11 @@ def CI_exp_c_clv(a,Y,ancient):
 
 # pareto estimator
 def pareto_nc_clv_estimator(Y):
-    n = len(Y)
-    denom = 1 - (1/n)*(np.sum(np.log(Y)))
+    denom = 1 - (np.sum(np.log(Y))/len(Y))
     return 1 / denom
 
 def pareto_c_clv_estimator(Y, ancient):
-    n = len(Y) - len(np.where(Y==ancient)[0])
-    denom = 1 - (1/n)*(np.sum(np.log(Y)))
+    denom = 1 - (np.sum(np.log(Y))/ len(np.where(Y!=ancient)[0]))
     return 1 / denom
 
 def CI_pareto_c_clv(a,Y,ancient):
@@ -519,3 +519,38 @@ def CI_pareto_c_clv(a,Y,ancient):
     upper = 1- (np.sum(np.log(Y)) / (len_A + 1.96* np.sqrt(len_A)))
     
     return 1/upper, 1/lower
+
+######################################################################################
+#                 ESTIMATORS TO TEST ON REAL DATA : LUNG CANCER                      #
+######################################################################################
+
+
+#Geomtric estimator - censored
+
+def geom_c_clv_estimator2(Y, status):
+    """
+    Function to calculate the geometric clv estimator
+    
+    Parameters:
+    Y (array): numerical values related to known lifetimes
+    status (array): true if dead, false otherwise
+    
+    Returns:
+    float: the geometric clv estimator values
+    """
+    A = np.where(status==True)[0]  
+    N = np.where(status==False)[0]
+    return (np.sum(Y[A]) + np.sum(Y[N]))/len(A)
+
+
+#Exponential estimator - censored
+
+def exp_c_clv_estimator2(Y , status):
+    
+    return np.sum(Y) /np.count_nonzero(status)
+
+
+# pareto estimator
+def pareto_c_clv_estimator2(Y, status):
+    denom = 1 - (np.sum(np.log(Y))/np.count_nonzero(status))
+    return 1 / denom
