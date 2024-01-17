@@ -1,4 +1,5 @@
-# PROJET-INTEGRATEUR---CLV
+# Statistical Estimation OF CLV
+Customer Lifetime Value (CLV) is a key metric for companies looking to assess their long-term profitability. It can measure how much revenue a customer can generate for a company over the course of his or her lifetime as a customer. It can also synthesize churn risk of every single customer. Thus, CLV is an indispensable tool for companies that want to maximize their return on investment and develop effective marketing and loyalty strategies. In this project, we will mainly take a look at the CLV from a statistical point of view. We will also discuss the methods for calculating CLV such as Kaplan Meier estimator.
 
 ## Folder Structure
 
